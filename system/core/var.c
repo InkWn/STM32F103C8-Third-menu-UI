@@ -13,12 +13,12 @@ SYS_NB_TypeDef sysNB = {0};                   // sys非阻塞延迟结构体当前指针
 volatile __bool isNeedSysNBCallback = False;  // sys回调需要被调用
 
 Button_TypeDef btnsGroup[KEY_COUNT] = {
-	{.pin = Btn_Left,   .idx = 0},
-	{.pin = Btn_Right,  .idx = 1},
-	{.pin = Btn_Up,     .idx = 2},
-	{.pin = Btn_Bottom, .idx = 3},
-	{.pin = Btn_Enter,  .idx = 4},
-	{.pin = Btn_Close,  .idx = 5},
+	{.pin = Btn_Left},
+	{.pin = Btn_Right},
+	{.pin = Btn_Up},
+	{.pin = Btn_Bottom},
+	{.pin = Btn_Enter},
+	{.pin = Btn_Close},
 };
 
 uint8_t time_h = 0;

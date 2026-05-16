@@ -50,10 +50,11 @@
 	} SYS_NB_TypeDef;
 	
 	typedef struct {
-		uint8_t           pin;        // 哪个引脚，用来0x01 << pin
-		uint8_t           idx;        // 该按钮在所在按钮数组的索引
-		volatile __bool   pushed;     // 是否按下了
-		volatile __bool   handled;    // 是否处理了
+		uint8_t pin;                  // 哪个引脚，用来0x01 << pin
+		__bool  pushed;               // 是否按下了
+		__bool  handled;              // 是否处理了
+		__bool  lastRaw;              // 上一次的状态
+		__bool  pending;              // 待二次确认，用于消抖
 	} Button_TypeDef;
 
 	typedef struct {

@@ -9,7 +9,7 @@ void Button_Input_Check(void) {
 	for (uint8_t i = 0; i < KEY_COUNT; i++) {
 		__bool raw = (__bool)!(gpioA->IDR & (0x01 << btnsGroup[i].pin));
 		if ((raw != btnsGroup[i].lastRaw)) {
-			// 改变了状态
+			// �ı���״̬
 			btnsGroup[i].lastRaw = raw;
 			btnsGroup[i].pending = True;
 		}
