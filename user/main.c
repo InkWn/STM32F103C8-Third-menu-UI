@@ -1,7 +1,7 @@
 /*******
 iid系统暂时有问题，不能使用，不过本程序也用不到
 
-本程序暂不支持动态增删菜单单项
+本程序暂不支持在运行时动态增删菜单单项
 
 项目地址：https://github.com/InkWn/STM32F103C8-Third-menu-UI
 ********/
@@ -54,7 +54,7 @@ void Error_DealWith(void) {
 			sysNB.cb = 0;
 			if (cb) cb();
 			isNeedSysNBCallback = False;
-		}
+		} 
 	}
 }
 
@@ -78,7 +78,6 @@ int main(void) {
 			timeAdd();
 			displayNeedRefresh = True;
 		}
-		Get_Input();
 		PageMgr_UpdateButton();
 		PageMgr_Loop();
 		if (isNeedSysNBCallback) {
@@ -87,7 +86,9 @@ int main(void) {
 			if (cb) cb();
 			isNeedSysNBCallback = False;
 		}
+		Button_Input_Check();
 		delay_ms(10);
+		Button_Input_Confirm();
 	}
 }
 
