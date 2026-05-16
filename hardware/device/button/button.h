@@ -2,7 +2,8 @@
 	#define BUTTON_H
 	
 	#include <stdint.h>
-	
-	void Get_Input(void);
+
+	void Button_Input_Check(void);
+	void Button_Input_Confirm(void);
 	
 #endif
