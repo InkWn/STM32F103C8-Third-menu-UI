@@ -32,6 +32,12 @@
 
 	IWidget OLED_PrintChar(OLED_Type oled, uint8_t x, uint8_t y, const char ch, Font f, Draw_Mode mode);
 	IWidget OLED_PrintCN(OLED_Type oled, uint8_t x, uint8_t y, CN_Index cIdx, Font f, Draw_Mode mode);
+
+	IWidget OLED_PrintSuperLabel(
+		OLED_Type oled, uint8_t x, uint8_t y,
+		MixText *text, Draw_Mode mode,
+		Orientation ori, uint8_t spacing
+	);
 	
 	IWidget OLED_PrintLabel(
 		OLED_Type oled, uint8_t x, uint8_t y,

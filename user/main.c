@@ -2,6 +2,8 @@
 iid系统暂时有问题，不能使用，不过本程序也用不到
 
 本程序暂不支持动态增删菜单单项
+
+项目地址：https://github.com/InkWn/STM32F103C8-Third-menu-UI
 ********/
 
 #include "rcc.h"
@@ -35,12 +37,14 @@ void Error_DealWith(void) {
 	LED_Control(2);
 	delay_s(2);
 	switch (gError) {
+		case ERROR_I2C_ADDR_NACK:
+			LED_Control(2); break;
 		case ERROR_TIME_OUT:
-			LED_Control(3);
-		case ERROR_Undefine:
-			LED_Control(4);
+			LED_Control(3); break;
+		case ERROR_UNDEFINE:
+			LED_Control(4); break;
 		case ERROR_OVER_FLOW:
-			LED_Control(5);
+			LED_Control(5); break;
 		default:
 			break;
 	}
@@ -62,13 +66,20 @@ int main(void) {
 		if (gError != ERROR_NONE) {
 			Error_DealWith();
 		}
-		if (is1000ms > 1) {
+		if (timeNeedUpdate) {
+			timeNeedUpdate = False;
 			timeAdd();
-			is1000ms -= 1;
+			displayNeedRefresh = True;
 		}
 		Get_Input();
 		PageMgr_UpdateButton();
 		PageMgr_Loop();
+		if (isNeedSysNBCallback) {
+			v_vCallBack cb = sysNB.cb;
+			sysNB.cb = 0;
+			if (cb) cb();
+			isNeedSysNBCallback = False;
+		}
 		delay_ms(10);
 	}
 }

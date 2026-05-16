@@ -22,36 +22,41 @@ static IGeometry IW_SetUnderline(IWidget *iw, Draw_Mode mode) {
 /**
   * @brief: 在最右侧设置左箭头，不刷新，得手动刷新
   */
-static IWidget IW_SetArrow(IMenuItem *iw, Draw_Mode mode) {
-	IMenuItem temp_iw = *iw;
-	
-	if (iw->font.lang == Chinese) {
-		if (iw->font.fontSize == FONTLIB_CN_1616) {
-			temp_iw.font = FONT_EN_0816;
-		} else {
-			gError = ERROR_Undefine;
+static IWidget IW_SetArrow(IMenuItem *im, Draw_Mode mode) {
+	Font f = FONT_EN_0508;  // 默认
+
+	for (MixText *seg = im->text; seg->type != MIX_END; seg++) {
+		if (seg->font.fH > f.fH) {
+			if (seg->font.lang == Chinese) {
+				if (seg->font.fontSize == FONTLIB_CN_1616) {
+					f = FONT_EN_0816;
+				} else { gError = ERROR_UNDEFINE; }
+			} else { f = seg->font; }
 		}
-	}	
+	}
+
 	return OLED_PrintChar(
 		OLED_SPI,
-		iw->base.geo.posX + iw->base.geo.sizeX - temp_iw.font.fW * 2,
-		iw->viewY, '<', temp_iw.font, mode
+		im->base.geo.posX + im->base.geo.sizeX - f.fW * 2,
+		im->viewY, '<', f, mode
 	);
 }
 
-void IW_DrawSelected(IMenuItem *iw) { IW_SetArrow(iw, MODE_NOIID); }
-void IW_DrawNoSelect(IMenuItem *iw) { IW_SetArrow(iw, MODE_CLEAR); }
+void IW_DrawSelected(IWidget *iw) { IW_SetArrow((IMenuItem*)iw, MODE_NOIID); }
+void IW_DrawNoSelect(IWidget *iw) { IW_SetArrow((IMenuItem*)iw, MODE_CLEAR); }
 
 
-void IW_DrawClicked(IMenuItem *iw) {
+#if 0
+void IW_DrawClicked(IWidget *iw) {
 	// 点击时的实现动画，可以考虑要不要，反正点击后就进入下一级菜单了
 	OLED_InvertRegion(
-		OLED_SPI, iw->base.geo.posX, iw->base.geo.posY,
-		iw->base.geo.posX + iw->base.geo.sizeX, iw->base.geo.posY + iw->base.geo.sizeY
+		OLED_SPI, iw->geo.posX, iw->geo.posY,
+		iw->geo.posX + iw->geo.sizeX, iw->geo.posY + iw->geo.sizeY
 	);
 	delay_ms(100);
 	OLED_InvertRegion(
-		OLED_SPI, iw->base.geo.posX, iw->base.geo.posY,
-		iw->base.geo.posX + iw->base.geo.sizeX, iw->base.geo.posY + iw->base.geo.sizeY
+		OLED_SPI, iw->geo.posX, iw->geo.posY,
+		iw->geo.posX + iw->geo.sizeX, iw->geo.posY + iw->geo.sizeY
 	);
 }
+#endif

@@ -4,6 +4,7 @@
 	#include "types.h"
 
 	__bool SysTick_Init(void);
-	extern volatile uint8_t is1000ms;
+	extern volatile __bool timeNeedUpdate;
+	extern volatile __bool displayNeedRefresh;
 	
 #endif

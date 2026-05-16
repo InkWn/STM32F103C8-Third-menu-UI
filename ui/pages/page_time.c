@@ -47,7 +47,7 @@ static void __loopFunc(void) {
             default: continue;
         }
     }
-    if (!__exitPage && is1000ms == 1) {
+    if (!__exitPage && displayNeedRefresh) {
         char text[9];
 		getLabel(text);
         OLED_PrintLabel(OLED_SPI, IG_TimeLabel.posX, IG_TimeLabel.posY, text, 8, FONT_EN_0816, MODE_CLEAR, Horizontal, 0);
@@ -57,13 +57,13 @@ static void __loopFunc(void) {
             IG_TimeLabel.posX + IG_TimeLabel.sizeX,
             IG_TimeLabel.posY + IG_TimeLabel.sizeY, 100
         );
-        is1000ms = 0;
+        displayNeedRefresh = False;
     }
 }
 
 static void __showFunc(void) {
     __exitPage = False;
-    is1000ms = 1;
+    displayNeedRefresh = True;
     OLED_Update_SPI1(100);
 }
 

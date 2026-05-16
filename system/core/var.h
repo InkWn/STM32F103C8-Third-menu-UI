@@ -14,8 +14,9 @@
 	
 	extern ERROR  gError;
 	
-	extern volatile uint8_t RF_Count;
+	// extern volatile uint8_t RF_Count;
 	extern SYS_NB_TypeDef sysNB;
+	extern volatile __bool isNeedSysNBCallback;
 	
 	extern Button_TypeDef btnsGroup[KEY_COUNT];
 	

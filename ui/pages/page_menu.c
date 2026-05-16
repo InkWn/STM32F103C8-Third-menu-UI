@@ -2,62 +2,102 @@
 #include "page_menu.h"
 
 #include "var.h"
+#include "led.h"
 #include "sfrdef.h"
 #include "menuMgr.h"
 #include "page_main.h"
 
 static __bool __exitPage = False;       // 离开菜单页面，防止退出后仍然刷新
-static __bool __needUpdate = False;       // 需要更新页面
+static __bool __needUpdate = False;     // 需要更新页面
 static IMenuHandle *currImh = NULL;     // 当前菜单头
 
-/*================ menu单项 ================*/
-/*----- 一些定义 -----*/
-#define FONT_CN      {FONTLIB_CN_1616, Chinese, 16, 16}  // 全局变量不给直接用FONT_EN_0508，所以定义一个
-#define FONT_EN      {FONTLIB_EN_0816, English, 8, 16}
+// 拼接先CN后EN的MixText
+#define MT_ENTRY_CE(cn_ci, ascii_str) { \
+	{.font = FONT_CN_1616_DEF, .type = MIX_CN, .data.ci = (cn_ci), .len = sizeof(cn_ci) / sizeof(cn_ci[0])}, \
+	{.font = FONT_EN_0816_DEF, .type = MIX_ASCII, .data.ascii = (ascii_str), .len = sizeof(ascii_str) - 1}, \
+	{.type = MIX_END} \
+}
 
-static const CN_Index ci_x_1[3] = {CN_XUAN_001, CN_XIANG_001, CN_YI_001};
-static const CN_Index ci_0_2[3] = {CN_XUAN_001, CN_XIANG_001, CN_ER_001};
-static const CN_Index ci_0_3[3] = {CN_XUAN_001, CN_XIANG_001, CN_SAN_001};
-static const CN_Index ci_0_4[3] = {CN_XUAN_001, CN_XIANG_001, CN_SI_001};
-static const CN_Index ci_0_5[3] = {CN_XUAN_001, CN_XIANG_001, CN_WU_001};
-static const CN_Index ci_2_1[2] = {CN_FAN_001, CN_HUI_001};
+/*================ menu单项 ================*/
+static CN_Index ciGroup_choose[2] = {CN_XUAN_001, CN_XIANG_001};   // 选项
+static CN_Index ciGroup_enter[2]  = {CN_JIN_001, CN_RU_001};       // 进入
+static CN_Index ciGroup_return[2] = {CN_FAN_001, CN_HUI_001};      // 返回
 /*------ 一级菜单 ------*/
 static IMenuHandle iMh_0 = {.geo = FullScreen, .topIdx = 0, .mh = 16};
-static IMenuItem item_0_1 = {.font = FONT_CN, .text = ci_x_1, .len = 3};
-static IMenuItem item_0_2 = {.font = FONT_CN, .text = ci_0_2, .len = 3};
-static IMenuItem item_0_3 = {.font = FONT_CN, .text = ci_0_3, .len = 3};
-static IMenuItem item_0_4 = {.font = FONT_CN, .text = ci_0_4, .len = 3};
-static IMenuItem item_0_5 = {.font = FONT_CN, .text = ci_0_5, .len = 3};
-static IMenuItem item_0_6 = {.font = FONT_EN, .text = "0-6", .len = 3};
-static IMenuItem item_0_7 = {.font = FONT_EN, .text = "0-7", .len = 3};
+#define ITEM0_CNT  8
+static IMenuItem item_0_1, item_0_2, item_0_3, item_0_4, item_0_5, item_0_6, item_0_7, item_0_8;
+static MixText itemText0[ITEM0_CNT][3] = {  // 这个3指，中文+英文+END，若再插入中文（中文+英文+中文+END），则为4
+	[0] = {{.font = FONT_EN_0816_DEF, .data.ascii = "This is Lv1", .type = MIX_ASCII, .len = 11 }, {.type = MIX_END}},
+	[1] = MT_ENTRY_CE(ciGroup_enter, "Lv2"),
+	[2] = MT_ENTRY_CE(ciGroup_enter, "Lv3"),
+	[3] = {{.font = FONT_EN_0816_DEF, .data.ascii = "On LED", .type = MIX_ASCII, .len = 6 }, {.type = MIX_END}},
+	[4] = {{.font = FONT_EN_0816_DEF, .data.ascii = "Off LED", .type = MIX_ASCII, .len = 7 }, {.type = MIX_END}},
+	[5] = MT_ENTRY_CE(ciGroup_choose, "1-6"),
+	[6] = MT_ENTRY_CE(ciGroup_choose, "1-7"),
+	[7] = MT_ENTRY_CE(ciGroup_choose, "1-8"),
+};
 /*------ 二级菜单 ------*/
 static IMenuHandle iMh_1 = {.geo = FullScreen, .topIdx = 0, .mh = 16};
-static IMenuItem item_1_1 = {.font = FONT_CN, .text = ci_x_1, .len = 3};
-static IMenuItem item_1_2 = {.font = FONT_EN, .text = "1-2", .len = 3};
+#define ITEM1_CNT  4
+static IMenuItem item_1_1, item_1_2, item_1_3, item_1_4;
+static MixText itemText1[ITEM1_CNT][3] = {
+	[0] = {{.font = FONT_EN_0816_DEF, .data.ascii = "This is Lv2", .type = MIX_ASCII, .len = 11 }, {.type = MIX_END}},
+	[1] = MT_ENTRY_CE(ciGroup_enter, "Lv3"),
+	[2] = MT_ENTRY_CE(ciGroup_return, "Lv1"),
+	[3] = MT_ENTRY_CE(ciGroup_choose, "2-4"),
+};
 /*------ 三级菜单 ------*/
 static IMenuHandle iMh_2 = {.geo = FullScreen, .topIdx = 0, .mh = 16};
-static IMenuItem item_2_1 = {.font = FONT_CN, .text = ci_2_1, .len = 2};
+#define ITEM2_CNT  3
+static IMenuItem item_2_1, item_2_2, item_2_3;
+static MixText itemText2[ITEM2_CNT][3] = {
+	[0] = {{.font = FONT_EN_0816_DEF, .data.ascii = "This is Lv3", .type = MIX_ASCII, .len = 11 }, {.type = MIX_END}},
+	[1] = MT_ENTRY_CE(ciGroup_return, "Lv2"),
+	[2] = MT_ENTRY_CE(ciGroup_return, "main"),
+};
 /*------ 初始化函数 ------*/ 
 static void Menu_0_Init(void) {
-	Menu_AddMenuItem(&iMh_0, &item_0_1);
-	Menu_AddMenuItem(&iMh_0, &item_0_2);
-	Menu_AddMenuItem(&iMh_0, &item_0_3);
-	Menu_AddMenuItem(&iMh_0, &item_0_4);
-	Menu_AddMenuItem(&iMh_0, &item_0_5);
-	Menu_AddMenuItem(&iMh_0, &item_0_6);
-	Menu_AddMenuItem(&iMh_0, &item_0_7);
+	IMenuItem *items[] = {
+		&item_0_1, &item_0_2, &item_0_3, &item_0_4,
+		&item_0_5, &item_0_6, &item_0_7, &item_0_8
+	};
+
+	for (uint8_t i = 0; i < ITEM0_CNT; i++) {
+		items[i]->text = itemText0[i];
+		Menu_AddMenuItem(&iMh_0, items[i]);
+	}
 }
 static void Menu_1_Init(void) {
-	Menu_AddMenuItem(&iMh_1, &item_1_1);
-	Menu_AddMenuItem(&iMh_1, &item_1_2);
+	IMenuItem *items[] = {
+		&item_1_1, &item_1_2, &item_1_3, &item_1_4,
+	};
+
+	for (uint8_t i = 0; i < ITEM1_CNT; i++) {
+		items[i]->text = itemText1[i];
+		Menu_AddMenuItem(&iMh_1, items[i]);
+	}
 }
 static void Menu_2_Init(void) {
-	Menu_AddMenuItem(&iMh_2, &item_2_1);
+	IMenuItem *items[] = {
+		&item_2_1, &item_2_2, &item_2_3,
+	};
+
+	for (uint8_t i = 0; i < ITEM2_CNT; i++) {
+		items[i]->text = itemText2[i];
+		Menu_AddMenuItem(&iMh_2, items[i]);
+	}
 }
 /*------ 定义enter函数 ------*/
-static void __item_0_1_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_1; __needUpdate = True; }
-static void __item_1_1_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_2; __needUpdate = True; }
-static void __item_2_1_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_1; __needUpdate = True; }
+static void __item_0_2_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_1; __needUpdate = True; }
+static void __item_0_3_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_2; __needUpdate = True; }
+static void __item_0_4_enter(void) { LED_Control(1); }
+static void __item_0_5_enter(void) { LED_Control(0); }
+
+static void __item_1_2_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_2; __needUpdate = True; }
+static void __item_1_3_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_0; __needUpdate = True; }
+
+static void __item_2_2_enter(void) { Menu_SetIsTurnPage(True); currImh = &iMh_1; __needUpdate = True; }
+static void __item_2_3_enter(void) { PageMgr_SwitchTo(&iPage_Main); }
 /*------ 定义leave函数 ------*/ 
 static void __item_0_x_leave(void) { PageMgr_SwitchTo(&iPage_Main); }
 static void __item_1_x_leave(void) { Menu_SetIsTurnPage(True); currImh = &iMh_0; __needUpdate = True; }
@@ -65,7 +105,10 @@ static void __item_2_x_leave(void) { Menu_SetIsTurnPage(True); currImh = &iMh_1;
 /*------ 绑定函数-1 ------*/ 
 static void Menu_0_BindFunc(void) {
 	// enter
-	item_0_1.enterCall = __item_0_1_enter;
+	item_0_2.enterCall = __item_0_2_enter;
+	item_0_3.enterCall = __item_0_3_enter;
+	item_0_4.enterCall = __item_0_4_enter;
+	item_0_5.enterCall = __item_0_5_enter;
 	// leave
 	IMenuItem *p = iMh_0.begin;
 	while (p) {
@@ -76,7 +119,8 @@ static void Menu_0_BindFunc(void) {
 /*------ 绑定函数-2 ------*/ 
 static void Menu_1_BindFunc(void) {
 	// enter
-	item_1_1.enterCall = __item_1_1_enter;
+	item_1_2.enterCall = __item_1_2_enter;
+	item_1_3.enterCall = __item_1_3_enter;
 	// leave
 	IMenuItem *p = iMh_1.begin;
 	while (p) {
@@ -87,7 +131,8 @@ static void Menu_1_BindFunc(void) {
 /*------ 绑定函数-3 ------*/ 
 static void Menu_2_BindFunc(void) {
 	// enter
-	item_2_1.enterCall = __item_2_1_enter;
+	item_2_2.enterCall = __item_2_2_enter;
+	item_2_3.enterCall = __item_2_3_enter;
 	// leave
 	IMenuItem *p = iMh_2.begin;
 	while (p) {
@@ -126,7 +171,6 @@ static void __loopFunc(void) {
 			case KEY_CLOSE:
 				if (currImh->select->leaveCall) {
 					currImh->select->leaveCall();
-					//
 					__needUpdate = True;
 				}
 				break;
@@ -140,9 +184,18 @@ static void __loopFunc(void) {
 	}
 }
 
+#define Reset_iMh(iMh, firstItem) {\
+	iMh.curIdx = 0;\
+	iMh.topIdx = 0;\
+	iMh.select = &firstItem;\
+}
+
 static void __showFunc(void) {
 	__exitPage = False;
 	currImh = &iMh_0;
+	Reset_iMh(iMh_0, item_0_1);
+	Reset_iMh(iMh_1, item_1_1);
+	Reset_iMh(iMh_2, item_2_1);
 	Menu_ShowAll(currImh);
 }
 

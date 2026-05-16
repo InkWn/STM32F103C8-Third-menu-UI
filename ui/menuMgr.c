@@ -10,9 +10,13 @@ void Menu_SetIsTurnPage(__bool flag) { isTurnPage = flag; }
 
 // 绘制菜单文本
 static void Menu_ShowText(IMenuItem *item) {
-	OLED_PrintLabel(
+	// OLED_PrintLabel(
+	// 	OLED_SPI, item->base.geo.posX, item->viewY,
+	// 	item->text, item->len, item->font, MODE_NOIID, Horizontal, 0
+	// );
+	OLED_PrintSuperLabel(
 		OLED_SPI, item->base.geo.posX, item->viewY,
-		item->text, item->len, item->font, MODE_NOIID, Horizontal, 0
+		item->text, MODE_NOIID, Horizontal, 0	
 	);
 }
 
@@ -21,9 +25,6 @@ static uint8_t Menu_GetPageCnt(IMenuHandle *iMh) { return iMh->geo.sizeY / iMh->
 
 
 __bool Menu_AddMenuItem(IMenuHandle *iMh, IMenuItem *item) {
-	// 检查item
-	if (!item->font.fW) return False;
-
 	if (iMh->begin == NULL) {
 		// 链表为空
 		iMh->begin = item;
@@ -58,10 +59,9 @@ __bool Menu_AddMenuItem(IMenuHandle *iMh, IMenuItem *item) {
 	
 	item->base.geo.sizeX = iMh->geo.sizeX;   // 统一宽度
 	item->base.geo.sizeY = iMh->mh;          // 统一高度
-	// 绑定函数，警告不用管，调用时会把参数转换为正确类型
 	item->base.noSelectDraw = IW_DrawNoSelect;
 	item->base.SelectDraw   = IW_DrawSelected;
-	item->base.clickedDraw  = IW_DrawClicked;
+	// item->base.clickedDraw  = IW_DrawClicked;
 	return True;
 }
 
@@ -96,15 +96,6 @@ __bool Menu_MoveCursor(IMenuHandle *iMh, KEY_Type key) {
 	return True;
 }
 
-//void Menu_Click(IMenuHandle *iMh) {
-//	if (iMh->select == NULL) return;
-//	
-//	IW_DrawClicked(iMh->select);
-//	if (iMh->select->enterCall != NULL) {
-//		iMh->select->enterCall();
-//	}
-//}
-
 // 绘制滚动条
 void Menu_ShowScroll(IMenuHandle *iMh) {
 	uint8_t pageCnt = Menu_GetPageCnt(iMh);
@@ -117,9 +108,9 @@ void Menu_ShowScroll(IMenuHandle *iMh) {
 	uint8_t thumbH = (uint16_t)(pageCnt) * trackH / iMh->itemCnt;
 	if (thumbH < 1) thumbH = 1;
 
-	uint8_t maxIdx   = iMh->itemCnt - pageCnt;
-	uint8_t maxY     = trackH - thumbH;
-	uint8_t thumbY   = (maxIdx > 0) ? (uint16_t)(iMh->topIdx) * maxY / maxIdx : 0;
+	uint8_t maxIdx = iMh->itemCnt - pageCnt;
+	uint8_t maxY   = trackH - thumbH;
+	uint8_t thumbY = (maxIdx > 0) ? (uint16_t)(iMh->topIdx) * maxY / maxIdx : 0;
 
 	OLED_DrawLine(OLED_SPI, barX, 0, barX, trackH - 1, MODE_CLEAR);
 	OLED_DrawLine(OLED_SPI, barX, thumbY, barX, thumbY + thumbH - 1, MODE_NORMAL);
@@ -143,8 +134,8 @@ void Menu_ShowAll(IMenuHandle *iMh) {
 	for (uint8_t i = 0; i < pageCnt; i++) {
 		temp->viewY = (temp->idx - topIdx) * iMh->mh;
 		Menu_ShowText(temp);
-		if (i + topIdx == iMh->curIdx) { IW_DrawSelected(temp); }
-		else                           { IW_DrawNoSelect(temp); }
+		if (i + topIdx == iMh->curIdx) { IW_DrawSelected((IWidget*)temp); }
+		else                           { IW_DrawNoSelect((IWidget*)temp); }
 		if (temp->next == NULL) break;
 		temp = temp->next;
 	}

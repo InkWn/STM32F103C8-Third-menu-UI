@@ -19,7 +19,7 @@ static IPageHandle *currPage;
 static const char* t1 = "PA8:  LEFT\nPA9:  RIGHT\nPA10: TOP\nPA11: BOTTOM\nPA12: ENTER\nPA15: CLOSE\0";
 static const char* t2 = "Author\nInkWn\n \nDate\n20260428\0";
 
-#define btn_spacing 4
+#define btnTip_spacing 4
 static IGeometry IG_Btn;
 
 void PageMgr_Init(void) {
@@ -31,7 +31,7 @@ void PageMgr_Init(void) {
     uint8_t x = 0;
     for (uint8_t i = 0; i < KEY_COUNT; i++) {
         temp_w = OLED_PrintChar(OLED_I2C, x, 0, '0', FONT_EN_0508, MODE_NOIID);
-        x += temp_w.geo.sizeX + btn_spacing;
+        x += temp_w.geo.sizeX + btnTip_spacing;
 		if (x >= OLED_WIDTH) break;
     }
 	IG_Btn = temp_w.geo;
@@ -54,17 +54,21 @@ void PageMgr_SwitchTo(IPageHandle *iPageH) {
     currPage = iPageH;
 }
 
+
+/**
+  * @brief: 主循环会循环调用
+  */
 void PageMgr_Loop(void) {
     if (currPage->loopFunc)
         currPage->loopFunc();
     else {
-        gError = ERROR_Undefine;
+        gError = ERROR_UNDEFINE;
         return;
     }
 }
 
 static Button_TypeDef btnsGroup_temp[KEY_COUNT];
-static __bool btnNeedUpdate = False;
+static __bool __btnNeedUpdate = False;
 
 __bool PageMgr_UpdateButton(void) {
 	uint8_t x = 0;
@@ -73,13 +77,13 @@ __bool PageMgr_UpdateButton(void) {
             OLED_PrintChar(OLED_I2C, x, 0, 'x', FONT_EN_0508, MODE_CLEAR);  // 清空
             if (btnsGroup[i].pushed) OLED_PrintChar(OLED_I2C, x, 0, '1', FONT_EN_0508, MODE_NOIID);
             else                     OLED_PrintChar(OLED_I2C, x, 0, '0', FONT_EN_0508, MODE_NOIID);
-            btnNeedUpdate = True;
+            __btnNeedUpdate = True;
             btnsGroup_temp[i].pushed = btnsGroup[i].pushed;
         }
-		x += IG_Btn.sizeX + btn_spacing;
+		x += IG_Btn.sizeX + btnTip_spacing;
 		if (x >= OLED_WIDTH) return False;
 	}
-    if (btnNeedUpdate) 
-	    OLED_UpdateArea_I2C1(0, 0, x - btn_spacing, IG_Btn.sizeY, 100);
+    if (__btnNeedUpdate) 
+	    OLED_UpdateArea_I2C1(0, 0, x - btnTip_spacing, IG_Btn.sizeY, 100);
 	return True;
 }

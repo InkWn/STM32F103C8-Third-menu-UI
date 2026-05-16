@@ -7,7 +7,7 @@
 	
 	/**************************************************/
 	// 几何结构体
-	#define FullScreen   {0, 0, OLED_WIDTH, OLED_HEIGHT}
+	#define FullScreen   { 0, 0, OLED_WIDTH, OLED_HEIGHT }
 
 	typedef struct IGeometry {
 		uint8_t posX, posY;    // 控件初始位置
@@ -29,10 +29,10 @@
 		IWidget base;
 		void (*enterCall)(void);
 		void (*leaveCall)(void);
-		Font font;                 // ！用的字库
-		const void *text;          // ！文本
-		uint8_t len;               // ！文本长度
-		uint8_t idx;               // ！控件索引
+		Font font;                   // ！用的字库
+		const void *text;            // ！文本
+		uint8_t len;                 // ！文本长度
+		uint8_t idx;                 // ！控件索引
 	} IButton;
 
 	// 菜单子项
@@ -42,13 +42,11 @@
 		void (*leaveCall)(void);
 		struct IMenuItem* front;
 		struct IMenuItem* next;		
-		
-		Font font;                 // ！用的字库
-		const void *text;          // ！文本
-		uint8_t len;               // ！文本长度
-		uint8_t idx;               // 在菜单中的序号
-		uint8_t viewX;             // 暂时用不到
-		uint8_t viewY;             // 绘制时在Y轴的坐标
+
+		MixText *text;               // ！文本
+		uint8_t idx;                 // 在菜单中的序号
+		uint8_t viewX;               // 暂时用不到
+		uint8_t viewY;               // 绘制时在Y轴的坐标
 	} IMenuItem;
 	
 	// 菜单头部
@@ -73,8 +71,8 @@
 		void (*exitFunc)(void);      // 关闭该页面时调用，可做关闭前处理
 	} IPageHandle;
 	
-	void IW_DrawSelected(IMenuItem *iw);
-	void IW_DrawNoSelect(IMenuItem *iw);
-	void IW_DrawClicked(IMenuItem *iw);
+	void IW_DrawSelected(IWidget *iw);
+	void IW_DrawNoSelect(IWidget *iw);
+	// void IW_DrawClicked(IWidget *iw);
 
 #endif

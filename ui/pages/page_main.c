@@ -49,7 +49,7 @@ static void IB_SetBracket(IButton *ib, Draw_Mode mode) {
 		if (ib->font.fontSize == FONTLIB_CN_1616) {
 			temp_ib.font = FONT_EN_0816;
 		} else {
-			gError = ERROR_Undefine;
+			gError = ERROR_UNDEFINE;
 			return;
 		}
 	}	
@@ -97,6 +97,7 @@ static void __initFunc(void) {
 
 	currIb = &IB_Menu;
 	IB_SetBracket(currIb, MODE_NOIID);
+	
 	__needUpdate = True;
 }
 
